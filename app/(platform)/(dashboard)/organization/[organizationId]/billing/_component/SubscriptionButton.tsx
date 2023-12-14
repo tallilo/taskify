@@ -25,7 +25,7 @@ export default function SubscriptionButton({ isPro }: SubscriptionButtonProps) {
     else proModal.onOpen;
   };
   return (
-    <Button disabled={isLoading} variant="primary">
+    <Button onClick={onClick} disabled={isLoading} variant="primary">
       {isPro ? "Manage subscription" : "Upgrade to pro"}
     </Button>
   );
