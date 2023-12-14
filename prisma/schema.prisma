@@ -1,0 +1,147 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+  // previewFeatures = ["driverAdapters"]
+}
+
+datasource db {
+  provider = "mysql"
+  // url      = "file:./dev.db"
+  url      = env("DATABASE_URL")
+  relationMode = "prisma"
+}
+
+model Board{
+  id             String @id @default(uuid())
+  orgId          String
+  imageId        String
+  title          String
+  imageThumbUrl  String @db.Text
+  imageFullUrl   String @db.Text
+  imageUserName  String @db.Text
+  imageLinkHTML  String @db.Text
+
+lists     List[]
+
+
+createdAt         DateTime @default(now())
+updatedAt        DateTime @updatedAt
+
+}
+
+model List {
+  id      String @id @default(uuid())
+  title   String 
+  order   Int
+
+  boardId String
+  board   Board @relation(fields: [boardId], references:  [id] , onDelete: Cascade)
+
+cards    Card[]
+
+createdAt         DateTime @default(now())
+updatedAt        DateTime @updatedAt
+
+  @@index([boardId])
+}
+
+model Card {
+  id String @id @default(uuid())
+  title String
+  order Int
+  description String? @db.Text
+
+  listId  String
+  list    List @relation(fields: [listId], references:  [id] , onDelete: Cascade)
+
+createdAt         DateTime @default(now())
+updatedAt        DateTime @updatedAt
+
+    @@index([listId])
+}
+
+enum ACTION {
+
+  CREATE
+  DELETE
+  UPDATE
+}
+enum ENTITY_TYPE {
+  BOARD
+  LIST
+  CARD
+}
+
+model AuditLog{
+id               String @id @default(uuid())
+orgId            String
+action           ACTION
+entityId        String
+entityType       ENTITY_TYPE
+entityTitle      String
+userId           String
+userImage        String @db.Text
+userName         String @db.Text
+
+createdAt        DateTime @default(now())
+updatedAt        DateTime @updatedAt
+
+}
+
+
+model OrgLimit {
+  id String @id @default(uuid())
+  orgId String @unique
+  count Int @default(0)
+
+  createdAt DateTime @default(now())
+ updatedAt  DateTime @updatedAt
+}
+
+model OrgSubscription {
+  id String @id @default(uuid())
+  orgId String @unique
+  stripeCustomerId String? @unique @map(name:"stripe_customer_id")
+  stripeSubscriptionId String @unique @map(name:"stripe_subscription_id")
+  stripePriceId String? @map(name: "stripe_price_id")
+  stripeCurrentPeriodEnd DateTime? @map(name:"stripe_current_period_end")
+  
+}
+
+
+
+/// step 1  to migrate -- first step insted of prisma push
+//npx prisma migrate diff --from-empty --to-schema-datamodel prisma/schema.prisma --script > baseline.sql
+
+/// step 2 enter the baseline.sq; file to: \\wsl$\Ubuntu\home\tallilo
+
+/// step 3 do the command: turso db shell taskify < baseline.sql
+//on ubunto 
+
+//step 4 put the  previewFeatures = ["driverAdapters"] under prisma generator client object in this file
+
+// step 5 run prisma generate
+
+//step 6 make sure to include this script(when creating the prisma client file):  
+
+// import { createClient } from "@libsql/client";
+
+// import { PrismaLibSQL } from "@prisma/adapter-libsql";
+// import { PrismaClient } from "@prisma/client";
+// import dotenv from "dotenv";
+
+// dotenv.config();
+
+// const libsql = createClient({
+//   url: `${process.env.TURSO_DATABASE_URL}`,
+//   authToken: `${process.env.TURSO_AUTH_TOKEN}`,
+// });
+
+// const adapter = new PrismaLibSQL(libsql);
+
+// const prisma = new PrismaClient({ adapter });
+
+
+// step 7 end for any problems go to this video:  https://www.youtube.com/watch?v=YX30LmRip6M
